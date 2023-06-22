@@ -2,7 +2,6 @@ const socket = io();
 
 const welcome = document.getElementById("welcome");
 const form = welcome.querySelector("form");
-const room = document.getElementById("room");
 
 room.hidden = true;
 let roomName;
@@ -36,23 +35,24 @@ function showRoom() {
     const h3 = room.querySelector("h3");
     h3.innerText = `Room ${roomName}`;
     const msgForm = room.querySelector("#msg");
-    const nameForm = room.querySelector("#name");
     msgForm.addEventListener("submit", handleMessageSubmit);
-    nameForm.addEventListener("submit", handleNicknameSubmit);
 }
 
 function handleRoomSubmit(event) {
     event.preventDefault();
-    const input = form.querySelector("input");
-    // emit 마지막 agument는 무조건 function 이여야함.
-    socket.emit("enter_room", input.value, showRoom);
-    roomName = input.value;
-    input.value = "";
+    const rooms = form.querySelector("input#rooms");
+    const nickname = form.querySelector("input#name");
+    // emit 마지막 agument는 무조건 function 이여야함
+    socket.emit("nickname", nickname.value);
+    socket.emit("enter_room", rooms.value, showRoom);
+    roomName = rooms.value;
+    rooms.value = "";
 }
 
 form.addEventListener("submit", handleRoomSubmit);
 
 socket.on("welcome", (user) => {
+    console.log(user);
     addMessage(`${user} arrived!`);
 });
 
