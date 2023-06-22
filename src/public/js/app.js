@@ -4,7 +4,7 @@ const welcome = document.getElementById("welcome");
 const form = welcome.querySelector("form");
 
 room.hidden = true;
-let roomName;
+let roomName, nickName;
 
 function addMessage(message) {
     const ul = room.querySelector("ul");
@@ -42,11 +42,11 @@ function handleRoomSubmit(event) {
     event.preventDefault();
     const rooms = form.querySelector("input#rooms");
     const nickname = form.querySelector("input#name");
-    // emit 마지막 agument는 무조건 function 이여야함
-    socket.emit("nickname", nickname.value);
-    socket.emit("enter_room", rooms.value, showRoom);
+    socket.emit("enter_room", rooms.value, nickname.value, showRoom);
     roomName = rooms.value;
+    nickName = nickname.value;
     rooms.value = "";
+    nickname.value = "";
 }
 
 form.addEventListener("submit", handleRoomSubmit);
