@@ -151,6 +151,7 @@ function handleIce(data) {
     socket.emit("ice", data.candidate, roomName);
 }
 
+/** 6. peer to peer Stream */
 function handleAddStream(data) {
     console.log("got an event from my peer");
     const peerFace = document.getElementById("peerFace");
