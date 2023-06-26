@@ -78,6 +78,11 @@ function handleCameraClick() {
 
 async function handleCameraChange() {
     await getMedia(camerasSelect.value);
+    if (myPeerConeection) {
+        const videoTrack = myStream.getVideoTracks()[0];
+        const videoSender = myPeerConeection.getSenders().find((sender) => sender.track.kind === "video");
+        videoSender.replaceTrack(videoTrack);
+    }
 }
 
 muteBtn.addEventListener("click", handleMuteClick);
@@ -155,5 +160,5 @@ function handleIce(data) {
 function handleAddStream(data) {
     console.log("got an event from my peer");
     const peerFace = document.getElementById("peerFace");
-    peersStream.srcObject = data.stream;
+    peerFace.srcObject = data.stream;
 }
