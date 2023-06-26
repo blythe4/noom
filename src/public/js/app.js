@@ -8,14 +8,23 @@ let myStream;
 let muted = false;
 let cameraOff = false;
 
+async function getCamers() {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter((device) => device.kind === "videoinput");
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 async function getMedia() {
     try {
         myStream = await navigator.mediaDevices.getUserMedia({
             audio: true,
             video: true,
         });
-        console.log(myStream);
         myFace.srcObject = myStream;
+        await getCamers();
     } catch (e) {
         console.log(e);
     }
