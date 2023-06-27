@@ -13,7 +13,8 @@ let myStream;
 let muted = false;
 let cameraOff = false;
 let roomName;
-let myPeerConeection;
+let myPeerConnection;
+let myDataChannel;
 
 async function getCamers() {
     try {
@@ -78,9 +79,9 @@ function handleCameraClick() {
 
 async function handleCameraChange() {
     await getMedia(camerasSelect.value);
-    if (myPeerConeection) {
+    if (myPeerConnection) {
         const videoTrack = myStream.getVideoTracks()[0];
-        const videoSender = myPeerConeection.getSenders().find((sender) => sender.track.kind === "video");
+        const videoSender = myPeerConnection.getSenders().find((sender) => sender.track.kind === "video");
         videoSender.replaceTrack(videoTrack);
     }
 }
@@ -114,18 +115,25 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 //Socket Code
 /** 1. A */
 socket.on("welcome", async () => {
-    const offer = await myPeerConeection.createOffer();
-    myPeerConeection.setLocalDescription(offer);
+    myDataChannel = myPeerConnection.createDataChannel("chat");
+    myDataChannel.addEventListener("message", (event) => console.log(event.data));
+    console.log("made data channel");
+    const offer = await myPeerConnection.createOffer();
+    myPeerConnection.setLocalDescription(offer);
     console.log("sent the offer");
     socket.emit("offer", offer, roomName);
 });
 
 /** 2. B */
 socket.on("offer", async (offer) => {
+    myPeerConnection.addEventListener("datachannel", (event) => {
+        myDataChannel = event.channel;
+        myDataChannel.addEventListener("message", (event) => console.log(event.data));
+    });
     console.log("received the offer");
-    myPeerConeection.setRemoteDescription(offer);
-    const answer = await myPeerConeection.createAnswer();
-    myPeerConeection.setLocalDescription(answer);
+    myPeerConnection.setRemoteDescription(offer);
+    const answer = await myPeerConnection.createAnswer();
+    myPeerConnection.setLocalDescription(answer);
     console.log("sent the answer");
     socket.emit("answer", answer, roomName);
 });
@@ -133,18 +141,18 @@ socket.on("offer", async (offer) => {
 /** 3. A */
 socket.on("answer", (answer) => {
     console.log("received the answer");
-    myPeerConeection.setRemoteDescription(answer);
+    myPeerConnection.setRemoteDescription(answer);
 });
 
 /** 5. received candidate */
 socket.on("ice", (ice) => {
     console.log("received candidate");
-    myPeerConeection.addIceCandidate(ice);
+    myPeerConnection.addIceCandidate(ice);
 });
 
 // RTC Code
 function makeConnection() {
-    myPeerConeection = new RTCPeerConnection({
+    myPeerConnection = new RTCPeerConnection({
         iceServers: [
             {
                 urls: [
@@ -157,9 +165,9 @@ function makeConnection() {
             },
         ],
     });
-    myPeerConeection.addEventListener("icecandidate", handleIce);
-    myPeerConeection.addEventListener("addstream", handleAddStream);
-    myStream.getTracks().forEach((track) => myPeerConeection.addTrack(track, myStream));
+    myPeerConnection.addEventListener("icecandidate", handleIce);
+    myPeerConnection.addEventListener("addstream", handleAddStream);
+    myStream.getTracks().forEach((track) => myPeerConnection.addTrack(track, myStream));
 }
 
 /** 4. sent icecandidate  */
